@@ -8,7 +8,11 @@ const morgan = require('morgan');
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+    origin: 'https://holocruxe.com',
+    optionsSuccessStatus: 200
+  }));
+  
 app.use(bodyParser.json());
 app.use(morgan('dev'));
 
