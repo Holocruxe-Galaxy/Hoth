@@ -21,6 +21,10 @@ const db = mongoose.connection;
 db.on('error', (error) => console.error(error));
 db.once('open', () => console.log('Connected to Database'));
 
+app.get('/', (req,res) => {
+  res.send("<h1>Hello, world!</h1>");
+});
+
 app.use('/users', usersRouter);
 
-app.listen(3000, () => console.log('Server Started'));
+app.listen(8080, () => console.log('Server is listening on port 8080'));
