@@ -66,4 +66,5 @@ functions:
           method: post
 
 plugins:
-  - serverless-offline
+  # - serverless-offline
+  - serverless-python-requirements
