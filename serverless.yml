@@ -29,10 +29,11 @@ provider:
   environment:
     REGION: ${self:provider.region}
     STAGE: ${self:custom.stage}
-    SMTP_HOST: mail.holocruxe.com
-    SMTP_PORT: 587
+    SMTP_HOST: webmail.holocruxe.com
+    SMTP_PORT: 465
     SMTP_USER: contacto@holocruxe.com
     SMTP_FROM: contacto@holocruxe.com
+    SMTP_PASS: 4TJ1xKojRZS.
     
 
 package:
@@ -59,6 +60,7 @@ custom:
 functions:
   post_contact_info:
     handler: handler.contact_handler
+    role: arn:aws:iam::891377228861:role/lambda-auth-rol
     timeout: 30
     events:
       - httpApi:
@@ -66,5 +68,5 @@ functions:
           method: post
 
 plugins:
-  # - serverless-offline
+  - serverless-offline
   - serverless-python-requirements

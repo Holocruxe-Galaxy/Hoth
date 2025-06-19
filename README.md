@@ -1,101 +1,100 @@
-<!--
-title: 'AWS Simple HTTP Endpoint example in Python'
-description: 'This template demonstrates how to make a simple HTTP API with Python running on AWS Lambda and API Gateway using the Serverless Framework.'
-layout: Doc
-framework: v3
-platform: AWS
-language: python
-authorLink: 'https://github.com/serverless'
-authorName: 'Serverless, inc.'
-authorAvatar: 'https://avatars1.githubusercontent.com/u/13742415?s=200&v=4'
--->
+# Holocruxe - Hoth
 
-# Serverless Framework Python HTTP API on AWS
+## Descripción General
+Hoth es el microservicio encargado de gestionar el endpoint de contacto de la landing page de Holocruxe. Permite recibir información de contacto de usuarios, almacenarla en MongoDB y enviar notificaciones por correo electrónico usando SMTP.
 
-This template demonstrates how to make a simple HTTP API with Python running on AWS Lambda and API Gateway using the Serverless Framework.
-
-This template does not include any kind of persistence (database). For more advanced examples, check out the [serverless/examples repository](https://github.com/serverless/examples/)  which includes DynamoDB, Mongo, Fauna and other examples.
-
-## Usage
-
-### Deployment
-
+## Estructura del Proyecto
 ```
-$ serverless deploy
+Hoth/
+├── handler.py                # Lambda handler principal
+├── function/
+│   └── contact.py            # Lógica de negocio para contacto
+├── utils/
+│   ├── smtp_mail.py          # Utilidad para envío de correos SMTP
+│   └── db_conn.py            # Conexión a MongoDB
+├── templates/                # Plantillas HTML para emails
+│   └── contact.html
+├── serverless.yml            # Configuración Serverless Framework
+├── requirements.txt          # Dependencias Python
+├── README.md                 # (Este archivo)
+└── ...
 ```
 
-After deploying, you should see output similar to:
+## ¿Cómo funciona?
+1. **Recepción de datos:**
+   - El endpoint `/contact` recibe datos de contacto vía POST (nombre, email, teléfono, mensaje).
+2. **Almacenamiento:**
+   - Los datos se almacenan en la colección `landing_contact_info` de MongoDB.
+3. **Notificación por email:**
+   - Se envía un correo de notificación a contacto@holocruxe.com usando SMTP y una plantilla HTML.
 
-```bash
-Deploying aws-python-http-api-project to stage dev (us-east-1)
-
-✔ Service deployed to stack aws-python-http-api-project-dev (140s)
-
-endpoint: GET - https://xxxxxxxxxx.execute-api.us-east-1.amazonaws.com/
-functions:
-  hello: aws-python-http-api-project-dev-hello (2.3 kB)
-```
-
-_Note_: In current form, after deployment, your API is public and can be invoked by anyone. For production deployments, you might want to configure an authorizer. For details on how to do that, refer to [http event docs](https://www.serverless.com/framework/docs/providers/aws/events/apigateway/).
-
-### Invocation
-
-After successful deployment, you can call the created application via HTTP:
-
-```bash
-curl https://xxxxxxx.execute-api.us-east-1.amazonaws.com/
-```
-
-Which should result in response similar to the following (removed `input` content for brevity):
-
-```json
-{
-  "message": "Go Serverless v3.0! Your function executed successfully!",
-  "input": {
-    ...
+## Endpoints disponibles
+### POST /contact
+- **Descripción:** Recibe la información de contacto de un usuario.
+- **Body esperado (JSON):**
+  ```json
+  {
+    "name": "Nombre del usuario",
+    "email": "usuario@email.com",
+    "phone": "1234567890",
+    "message": "Mensaje enviado desde la landing"
   }
-}
-```
+  ```
+- **Respuesta exitosa:**
+  ```json
+  {
+    "status": "success",
+    "message": "Thank you <nombre>! Your message has been received."
+  }
+  ```
+- **Respuesta de error:**
+  ```json
+  {
+    "status": "error",
+    "message": "Database connection failed."
+  }
+  ```
 
-### Local development
+## Variables de entorno necesarias
+Definidas en `serverless.yml`:
+- `SMTP_HOST`: Host del servidor SMTP (ej: webmail.holocruxe.com)
+- `SMTP_PORT`: Puerto SMTP (465 para SSL, 587 para TLS)
+- `SMTP_USER`: Usuario del correo
+- `SMTP_PASS`: Contraseña del correo
+- `SMTP_FROM`: Email remitente
+- `REGION`, `STAGE`: Variables de entorno AWS
 
-You can invoke your function locally by using the following command:
+## Plantillas de correo
+Las plantillas HTML para los correos se encuentran en la carpeta `templates/` (ejemplo: `contact.html`).
 
-```bash
-serverless invoke local --function hello
-```
+## Instalación y pruebas locales
+1. Instala las dependencias:
+   ```bash
+   pip install -r requirements.txt
+   ```
+2. Crea un archivo `.env` (opcional para pruebas locales) con las variables de entorno necesarias.
+3. Ejecuta el servicio en local con Serverless Offline:
+   ```bash
+   sls offline
+   ```
+4. Realiza una petición de prueba:
+   ```bash
+   curl -X POST http://localhost:3000/contact \
+     -H 'Content-Type: application/json' \
+     -d '{"name": "Test", "email": "test@correo.com", "phone": "1234567890", "message": "Hola!"}'
+   ```
 
-Which should result in response similar to the following:
+## Dependencias principales
+- Python 3.12+
+- serverless, serverless-offline, serverless-python-requirements
+- pymongo, boto3, smtplib
 
-```
-{
-  "statusCode": 200,
-  "body": "{\n  \"message\": \"Go Serverless v3.0! Your function executed successfully!\",\n  \"input\": \"\"\n}"
-}
-```
+## Notas adicionales
+- El servicio implementa CORS para permitir peticiones desde cualquier origen.
+- El envío de correo puede configurarse para usar SSL o TLS según el servidor SMTP.
+- El almacenamiento en MongoDB requiere que las credenciales estén correctamente configuradas en AWS Secrets Manager.
+- Las respuestas siempre incluyen los headers necesarios para CORS.
 
-Alternatively, it is also possible to emulate API Gateway and Lambda locally by using `serverless-offline` plugin. In order to do that, execute the following command:
+---
 
-```bash
-serverless plugin install -n serverless-offline
-```
-
-It will add the `serverless-offline` plugin to `devDependencies` in `package.json` file as well as will add it to `plugins` in `serverless.yml`.
-
-After installation, you can start local emulation with:
-
-```
-serverless offline
-```
-
-To learn more about the capabilities of `serverless-offline`, please refer to its [GitHub repository](https://github.com/dherault/serverless-offline).
-
-### Bundling dependencies
-
-In case you would like to include 3rd party dependencies, you will need to use a plugin called `serverless-python-requirements`. You can set it up by running the following command:
-
-```bash
-serverless plugin install -n serverless-python-requirements
-```
-
-Running the above will automatically add `serverless-python-requirements` to `plugins` section in your `serverless.yml` file and add it as a `devDependency` to `package.json` file. The `package.json` file will be automatically created if it doesn't exist beforehand. Now you will be able to add your dependencies to `requirements.txt` file (`Pipfile` and `pyproject.toml` is also supported but requires additional configuration) and they will be automatically injected to Lambda package during build process. For more details about the plugin's configuration, please refer to [official documentation](https://github.com/UnitedIncome/serverless-python-requirements).
+> Para más detalles, revisa los docstrings en cada archivo fuente y la configuración en `serverless.yml`.

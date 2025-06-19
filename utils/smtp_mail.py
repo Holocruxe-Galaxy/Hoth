@@ -24,7 +24,7 @@ class SMTPMailSender:
         self.use_ssl = use_ssl
 
     def send(self, to_email, content, subject=""):
-        """
+        """from .email import Email
         Envía un email a través de SMTP.
 
         :param to_email: Email de destino

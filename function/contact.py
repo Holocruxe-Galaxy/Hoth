@@ -43,32 +43,32 @@ def contact_info(body:dict)-> dict:
         "message": body["message"]
     })
     mongo.disconnect()
+
+    # Send welcome email to contact@holocruxe.com
+    template_path = os.path.join(os.path.dirname(__file__), '../templates/contact.html')
+    with open(template_path, 'r', encoding='utf-8') as f:
+        template = f.read()
+    
+    contacto_html = template.replace('{{name}}', body['name'])
+    contacto_html = contacto_html.replace('{{email}}', body['email'])
+    contacto_html = contacto_html.replace('{{message}}', body['message'])
+    smtp = SMTPMailSender(
+        smtp_host=os.getenv('SMTP_HOST'),
+        smtp_port=int(os.getenv('SMTP_PORT', 587)),
+        username=os.getenv('SMTP_USER'),
+        password=os.getenv('SMTP_PASS'),
+        from_email=os.getenv('SMTP_FROM'),
+        use_tls=False,
+        use_ssl=True
+    )
+    print("Sending welcome email to " + os.getenv('SMTP_FROM'))
+    smtp.send(os.getenv('SMTP_FROM'), contacto_html, subject="¡Bienvenido a Holocruxe!")
+    
     return {
         "status": "success",
         "message": f"Thank you {body['name']}! Your message has been received."
     }
 
-    # Send welcome email to contact@holocruxe.com
-        # template_path = os.path.join(os.path.dirname(__file__), '../templates/contact.html')
-        # with open(template_path, 'r', encoding='utf-8') as f:
-        #     template = f.read()
-        
-        # contacto_html = template.replace('{{name}}', body['name'])
-        # contacto_html = contacto_html.replace('{{email}}', body['email'])
-        # contacto_html = contacto_html.replace('{{message}}', body['message'])
-
-        # smtp = SMTPMailSender(
-        #     smtp_host=os.getenv('SMTP_HOST'),
-        #     smtp_port=int(os.getenv('SMTP_PORT', 587)),
-        #     username=os.getenv('SMTP_USER'),
-        #     password=os.getenv('SMTP_PASS'),
-        #     from_email=os.getenv('SMTP_FROM'),
-        #     use_tls=True,
-        #     use_ssl=False
-        # )
-        # print("Sending welcome email to " + os.getenv('SMTP_FROM'))
-        # smtp.send(os.getenv('SMTP_FROM'), contacto_html, subject="¡Bienvenido a Holocruxe!")
-    # Return success message 
 # Example usage:
 # body = {
 #     "name": "John Doe",
