@@ -33,7 +33,7 @@ provider:
     SMTP_PORT: 465
     SMTP_USER: contacto@holocruxe.com
     SMTP_FROM: contacto@holocruxe.com
-    SMTP_PASS: 4TJ1xKojRZS.
+
     
 
 package:
